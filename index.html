@@ -581,19 +581,18 @@
     userRecord.attempts.push({ discord: discordRaw, results, timestamp: Date.now() });
     saveData(data);
 
-    // Send to Google Sheets
+    // Send to Google Sheets via GET (avoids CORS)
     const score = results.filter(Boolean).length;
-    fetch("https://script.google.com/macros/s/AKfycbwFpIQNjk7qae3P8A0zgkxhoXje9etAYX2lv0tbv4mwtOxDjIc6N79JWHjBJI9l8XD7/exec", {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        discord: discordRaw,
-        attempt: currentAttemptIndex,
-        answers: answerTexts,
-        score: `${score}/10`
-      })
-    }).catch(() => {}); // silently ignore network errors
+    const params = new URLSearchParams({
+      discord: discordRaw,
+      attempt: currentAttemptIndex,
+      answers: JSON.stringify(answerTexts),
+      score: `${score}/10`
+    });
+    fetch("https://script.google.com/macros/s/AKfycbz3fHlMdbde6Mtgtwb2kc1q94hqq19AOFYlUZTnFtL30EX-Gqkf-f1mx2WGrBl6K0iV/exec?" + params.toString(), {
+      method: "GET",
+      mode: "no-cors"
+    }).catch(() => {});
 
     showResults(results, currentAttemptIndex, userRecord.count);
   }
