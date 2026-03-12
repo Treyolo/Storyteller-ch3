@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Storyteller — Chapter III</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg2: #0f0f0f;
+    --panel: #111111;
+    --border: #1e1e1e;
+    --border-accent: #2a2a2a;
+    --yellow: #f0c040;
+    --red: #e03030;
+    --red-dim: #8b1a1a;
+    --green: #00cc66;
+    --green-dim: #004422;
+    --text: #c0c0c0;
+    --text-dim: #555;
+    --text-bright: #e8e8e8;
+    --mono: 'Share Tech Mono', monospace;
+    --display: 'Orbitron', sans-serif;
+    --body: 'Rajdhani', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 15px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanlines overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  /* Header */
+  header {
+    padding: 28px 40px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-family: var(--display);
+    font-size: 2.6rem;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    color: var(--yellow);
+  }
+  .logo span { color: var(--red); }
+
+  .subtitle-line {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    color: var(--text-dim);
+    margin-top: 6px;
+    text-transform: uppercase;
+  }
+
+  /* Goal banner */
+  .goal-banner {
+    padding: 12px 40px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    color: var(--red);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .goal-banner::before {
+    content: '◈';
+    font-size: 0.8rem;
+    color: var(--red);
+  }
+  .goal-banner strong { color: var(--yellow); letter-spacing: 0.05em; }
+
+  /* Main layout */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 40px 80px;
+  }
+
+  /* Section title */
+  .section-title {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Discord input block */
+  .discord-block {
+    background: var(--panel);
+    border: 1px solid var(--border-accent);
+    padding: 24px 28px;
+    margin-bottom: 32px;
+    position: relative;
+  }
+  .discord-block::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--yellow);
+  }
+
+  .field-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  input[type="text"] {
+    background: #0a0a0a;
+    border: 1px solid var(--border-accent);
+    color: var(--yellow);
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    padding: 10px 14px;
+    width: 100%;
+    outline: none;
+    letter-spacing: 0.08em;
+    transition: border-color 0.2s;
+  }
+  input[type="text"]:focus {
+    border-color: var(--yellow);
+  }
+  input[type="text"]::placeholder {
+    color: var(--text-dim);
+    font-size: 0.75rem;
+  }
+  input[type="text"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Riddles grid */
+  .riddles-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .riddle-row {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 48px 1fr 220px;
+    align-items: stretch;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .riddle-row:hover { border-color: var(--border-accent); }
+  .riddle-row.answered-correct { border-color: #004422; }
+  .riddle-row.answered-wrong { border-color: #3a0a0a; }
+
+  .riddle-num {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid var(--border);
+    letter-spacing: 0.1em;
+  }
+
+  .riddle-text {
+    padding: 16px 20px;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    line-height: 1.8;
+    color: var(--text);
+    letter-spacing: 0.04em;
+    border-right: 1px solid var(--border);
+  }
+
+  .riddle-input-area {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    justify-content: center;
+  }
+
+  .riddle-input-area input {
+    font-size: 0.78rem;
+    padding: 8px 10px;
+  }
+
+  /* Attempt counter */
+  .attempts-info {
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    margin-top: 4px;
+  }
+  .attempts-info span { color: var(--red); }
+
+  /* Submit button */
+  .submit-btn {
+    margin-top: 32px;
+    background: transparent;
+    border: 1px solid var(--yellow);
+    color: var(--yellow);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 14px 40px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: block;
+    width: 100%;
+  }
+  .submit-btn:hover:not(:disabled) {
+    background: var(--yellow);
+    color: #000;
+  }
+  .submit-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    border-color: var(--text-dim);
+    color: var(--text-dim);
+  }
+
+  /* Results panel */
+  #results-panel {
+    display: none;
+    margin-top: 40px;
+    background: var(--panel);
+    border: 1px solid var(--border-accent);
+    padding: 32px;
+    position: relative;
+  }
+  #results-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--red);
+  }
+
+  .results-header {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.22em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .results-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
+    margin-bottom: 28px;
+  }
+
+  .result-item {
+    padding: 6px 0;
+    color: var(--text-dim);
+  }
+  .result-item.correct {
+    color: var(--green);
+  }
+  .result-item.wrong {
+    color: var(--red-dim);
+  }
+  .result-item .first-letter {
+    font-weight: 700;
+    font-size: 0.88rem;
+    /* subtle — slightly brighter, same hue */
+    filter: brightness(1.4);
+  }
+
+  .result-item.wrong::before {
+    content: '✗';
+    margin-right: 8px;
+    color: var(--red);
+  }
+
+  .results-actions {
+    display: flex;
+    gap: 16px;
+    margin-top: 20px;
+  }
+
+  .action-btn {
+    background: transparent;
+    border: 1px solid var(--border-accent);
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 10px 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .action-btn:hover:not(:disabled) {
+    border-color: var(--yellow);
+    color: var(--yellow);
+  }
+  .action-btn.primary {
+    border-color: var(--yellow);
+    color: var(--yellow);
+  }
+  .action-btn.primary:hover {
+    background: var(--yellow);
+    color: #000;
+  }
+  .action-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  /* Error / info box */
+  .info-box {
+    padding: 12px 18px;
+    border: 1px solid;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 24px;
+    display: none;
+  }
+  .info-box.error { border-color: var(--red); color: var(--red); background: rgba(139,26,26,0.1); }
+  .info-box.warning { border-color: var(--yellow); color: var(--yellow); background: rgba(240,192,64,0.05); }
+  .info-box.show { display: block; }
+
+  /* Score display */
+  .score-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .score-value {
+    font-family: var(--display);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--yellow);
+  }
+  .score-label {
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    color: var(--text-dim);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  /* Hidden screenshot target */
+  #screenshot-area {
+    background: var(--bg);
+  }
+
+  /* Attempts exhausted banner */
+  .exhausted-banner {
+    background: rgba(139,26,26,0.15);
+    border: 1px solid var(--red-dim);
+    padding: 16px 24px;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    color: var(--red);
+    margin-bottom: 24px;
+    display: none;
+  }
+
+  /* Hint text */
+  .hint {
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    color: #333;
+    letter-spacing: 0.1em;
+    margin-top: 6px;
+  }
+
+  @media (max-width: 650px) {
+    header, .goal-banner { padding-left: 20px; padding-right: 20px; }
+    main { padding: 24px 20px 60px; }
+    .riddle-row { grid-template-columns: 36px 1fr; }
+    .riddle-input-area { grid-column: 1 / -1; border-top: 1px solid var(--border); }
+    .riddle-text { border-right: none; }
+    .logo { font-size: 1.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">THE <span>STORYTELLER</span></div>
+  <div class="subtitle-line" style="font-size:0.85rem;letter-spacing:0.08em;color:#888;font-family:var(--body);font-weight:300;margin-top:4px;">A Turning Point</div>
+  <div class="subtitle-line" style="margin-top:6px;">LEGENDS OF RUNETERRA · LND COMMUNITY EVENT · LCS #9</div>
+  <div class="subtitle-line" style="margin-top:2px;">Presented by Storyteller · Chapter III</div>
+</header>
+
+<div class="goal-banner">
+  SOLVE ALL 10 CHAMPION RIDDLES TO REVEAL THE IDENTITY OF NEXT <strong>STORYTELLER</strong> FOR LCS #9
+</div>
+
+<main>
+  <div class="section-title">PARTICIPANT REGISTRATION</div>
+
+  <div class="discord-block">
+    <div class="field-label">Discord Username</div>
+    <input type="text" id="discord-input" placeholder="Enter your Discord name (e.g. username#0000)" autocomplete="off" />
+    <div class="hint">// your name will be stored alongside your answers</div>
+  </div>
+
+  <div id="info-box" class="info-box error"></div>
+  <div id="exhausted-banner" class="exhausted-banner">⚠ MAXIMUM ATTEMPTS REACHED — NO FURTHER SUBMISSIONS ALLOWED FOR THIS ACCOUNT</div>
+
+  <div class="section-title">CHAMPION CIPHER — 10 RIDDLES</div>
+
+  <div class="riddles-grid" id="riddles-grid">
+    <!-- generated by JS -->
+  </div>
+
+  <button class="submit-btn" id="submit-btn" onclick="submitAnswers()">
+    ▶ SUBMIT ANSWERS
+  </button>
+
+  <!-- Results -->
+  <div id="results-panel">
+    <div class="section-title results-header">ANSWER SUMMARY — ATTEMPT <span id="attempt-num">1</span> OF 3</div>
+
+    <div class="score-row">
+      <div>
+        <div class="score-label">Correct Answers</div>
+        <div class="score-value" id="score-display">0 / 10</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="score-label">Participant</div>
+        <div style="font-family:var(--mono);color:var(--yellow);font-size:0.88rem;letter-spacing:0.08em;" id="result-discord">—</div>
+      </div>
+    </div>
+
+    <div class="results-list" id="results-list">
+      <!-- generated by JS -->
+    </div>
+
+    <div style="font-family:var(--mono);font-size:0.7rem;color:#444;letter-spacing:0.14em;margin:20px 0 24px;font-style:italic;">
+      // The answer is hidden in the beginnings
+    </div>
+
+    <div style="display:flex;gap:16px;">
+      <button class="action-btn primary" id="screenshot-btn" onclick="takeScreenshot()">⬇ SAVE SUMMARY</button>
+      <button class="action-btn" id="retry-btn" onclick="retryAttempt()">↺ NEW ATTEMPT</button>
+    </div>
+    <div id="attempts-left-msg" style="font-family:var(--mono);font-size:0.6rem;color:var(--text-dim);letter-spacing:0.12em;margin-top:16px;"></div>
+  </div>
+</main>
+
+<script>
+  const RIDDLES = [
+    { text: "Embraced by nature in the dark,\nhear you read my shadow arc.", answer: "maokai" },
+    { text: "I wear artifact from shuriman ground,\nbut Piltover is where I can be found.", answer: "ezreal" },
+    { text: "Created from fabric with love,\nsewn with grace from up above.", answer: "gwen" },
+    { text: "Two ahead, nine behind,\nwhich champ is in my mind?", answer: "ahri" },
+    { text: "Fighting with the soul of a god,\nfeel the wrath of my rod.", answer: "pantheon" },
+    { text: "Wild nature runs within my soul,\na Freljord's cold made me whole.", answer: "udyr" },
+    { text: "I still carry Noxian heart,\nhelp me find my last part.", answer: "riven" },
+    { text: "Death for a brother I crave,\nbeside Jax we stand brave.", answer: "ornn" },
+    { text: "I land with powerful rage,\nhidding cause I'm a mage.", answer: "shyvana" },
+    { text: "Standing here as Piltover boss,\nbut my marked region is across.", answer: "sett" },
+  ];
+
+  const CORRECT_NAMES = ["Maokai","Ezreal","Gwen","Ahri","Pantheon","Udyr","Riven","Ornn","Shyvana","Sett"];
+
+  const MAX_ATTEMPTS = 3;
+  const STORAGE_KEY = "storyteller_ch3_attempts";
+
+  // ── State ──────────────────────────────────────────────────────────────────
+  let currentDiscord = "";
+  let currentAttemptIndex = 0; // 0-based
+  let lastResults = null;
+
+  // Storage format: { [discordLower]: { count: N, attempts: [[bool,...], ...] } }
+  function loadData() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch { return {}; }
+  }
+  function saveData(data) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  // ── Build riddle rows ──────────────────────────────────────────────────────
+  function buildGrid() {
+    const grid = document.getElementById("riddles-grid");
+    grid.innerHTML = "";
+    RIDDLES.forEach((r, i) => {
+      const row = document.createElement("div");
+      row.className = "riddle-row";
+      row.id = `row-${i}`;
+      row.innerHTML = `
+        <div class="riddle-num">${String(i+1).padStart(2,"0")}</div>
+        <div class="riddle-text">${r.text.replace(/\n/g,"<br>")}</div>
+        <div class="riddle-input-area">
+          <input type="text" id="ans-${i}" placeholder="Champion name..." autocomplete="off" spellcheck="false" />
+        </div>
+      `;
+      grid.appendChild(row);
+    });
+  }
+
+  // ── Submit ─────────────────────────────────────────────────────────────────
+  function submitAnswers() {
+    const discordRaw = document.getElementById("discord-input").value.trim();
+    const infoBox = document.getElementById("info-box");
+
+    if (!discordRaw) {
+      showInfo("⚠ Please enter your Discord username before submitting.", "error");
+      return;
+    }
+
+    const discordKey = discordRaw.toLowerCase();
+    currentDiscord = discordRaw;
+
+    const data = loadData();
+    if (!data[discordKey]) data[discordKey] = { count: 0, attempts: [] };
+    const userRecord = data[discordKey];
+
+    if (userRecord.count >= MAX_ATTEMPTS) {
+      showExhausted();
+      return;
+    }
+
+    // Read answers
+    const results = RIDDLES.map((r, i) => {
+      const val = (document.getElementById(`ans-${i}`)?.value || "").trim().toLowerCase();
+      return val === r.answer;
+    });
+
+    currentAttemptIndex = userRecord.count + 1;
+    lastResults = results;
+    userRecord.count++;
+
+    // Read raw answer texts for Sheets
+    const answerTexts = RIDDLES.map((r, i) => {
+      const val = (document.getElementById(`ans-${i}`)?.value || "").trim();
+      return val || "—";
+    });
+
+    userRecord.attempts.push({ discord: discordRaw, results, timestamp: Date.now() });
+    saveData(data);
+
+    // Send to Google Sheets
+    const score = results.filter(Boolean).length;
+    fetch("https://script.google.com/macros/s/AKfycbwFpIQNjk7qae3P8A0zgkxhoXje9etAYX2lv0tbv4mwtOxDjIc6N79JWHjBJI9l8XD7/exec", {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        discord: discordRaw,
+        attempt: currentAttemptIndex,
+        answers: answerTexts,
+        score: `${score}/10`
+      })
+    }).catch(() => {}); // silently ignore network errors
+
+    showResults(results, currentAttemptIndex, userRecord.count);
+  }
+
+  // ── Results panel ──────────────────────────────────────────────────────────
+  function showResults(results, attemptNum, totalUsed) {
+    const panel = document.getElementById("results-panel");
+    panel.style.display = "block";
+
+    document.getElementById("attempt-num").textContent = attemptNum;
+    document.getElementById("result-discord").textContent = currentDiscord;
+
+    const score = results.filter(Boolean).length;
+    document.getElementById("score-display").textContent = `${score} / 10`;
+
+    const list = document.getElementById("results-list");
+    list.innerHTML = "";
+    results.forEach((correct, i) => {
+      const item = document.createElement("div");
+      item.className = "result-item " + (correct ? "correct" : "wrong");
+      if (correct) {
+        const name = CORRECT_NAMES[i];
+        item.innerHTML = `<span class="first-letter">${name[0]}</span>${name.slice(1)}`;
+      }
+      list.appendChild(item);
+    });
+
+    const remaining = MAX_ATTEMPTS - totalUsed;
+    const msg = document.getElementById("attempts-left-msg");
+    const retryBtn = document.getElementById("retry-btn");
+
+    if (remaining <= 0) {
+      msg.textContent = "// no attempts remaining";
+      retryBtn.disabled = true;
+    } else {
+      msg.textContent = `// ${remaining} attempt${remaining !== 1 ? "s" : ""} remaining`;
+      retryBtn.disabled = false;
+    }
+
+    panel.scrollIntoView({ behavior: "smooth", block: "start" });
+    hideInfo();
+  }
+
+  // ── Retry ──────────────────────────────────────────────────────────────────
+  function retryAttempt() {
+    const discordKey = currentDiscord.toLowerCase();
+    const data = loadData();
+    if (data[discordKey]?.count >= MAX_ATTEMPTS) {
+      showExhausted();
+      return;
+    }
+
+    // Clear inputs but keep discord name
+    RIDDLES.forEach((_, i) => {
+      const el = document.getElementById(`ans-${i}`);
+      if (el) { el.value = ""; el.disabled = false; }
+      const row = document.getElementById(`row-${i}`);
+      if (row) row.className = "riddle-row";
+    });
+
+    document.getElementById("results-panel").style.display = "none";
+    document.getElementById("riddles-grid").scrollIntoView({ behavior: "smooth" });
+    document.getElementById("discord-input").disabled = true;
+  }
+
+  // ── Screenshot ─────────────────────────────────────────────────────────────
+  function takeScreenshot() {
+    const results = lastResults;
+    if (!results) return;
+
+    const W = 600, ROW = 36, HEADER = 180, FOOTER = 70;
+    const H = HEADER + CORRECT_NAMES.length * ROW + FOOTER;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = W * 2;
+    canvas.height = H * 2;
+    const ctx = canvas.getContext("2d");
+    ctx.scale(2, 2);
+
+    // Background
+    ctx.fillStyle = "#0a0a0a";
+    ctx.fillRect(0, 0, W, H);
+
+    // Left accent bar
+    ctx.fillStyle = "#e03030";
+    ctx.fillRect(0, 0, 3, H);
+
+    // Title
+    ctx.fillStyle = "#f0c040";
+    ctx.font = "bold 18px 'Courier New', monospace";
+    ctx.fillText("THE STORYTELLER", 20, 34);
+
+    ctx.fillStyle = "#e03030";
+    ctx.font = "bold 18px 'Courier New', monospace";
+    ctx.fillText("         — CHAPTER III", 128, 34);
+
+    // Subtitle
+    ctx.fillStyle = "#444";
+    ctx.font = "9px 'Courier New', monospace";
+    ctx.fillText("LEGENDS OF RUNETERRA  ·  LND COMMUNITY EVENT  ·  LCS #9", 20, 52);
+
+    // Divider
+    ctx.strokeStyle = "#1e1e1e";
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(20, 64); ctx.lineTo(W - 20, 64); ctx.stroke();
+
+    // Attempt & discord
+    ctx.fillStyle = "#555";
+    ctx.font = "9px 'Courier New', monospace";
+    ctx.fillText("PARTICIPANT", 20, 82);
+    ctx.fillText("ATTEMPT", 300, 82);
+
+    ctx.fillStyle = "#f0c040";
+    ctx.font = "12px 'Courier New', monospace";
+    ctx.fillText(currentDiscord, 20, 98);
+
+    const score = results.filter(Boolean).length;
+    ctx.fillStyle = "#f0c040";
+    ctx.fillText(`${currentAttemptIndex} / 3`, 300, 98);
+
+    ctx.fillStyle = "#555";
+    ctx.font = "9px 'Courier New', monospace";
+    ctx.fillText("SCORE", 420, 82);
+    ctx.fillStyle = "#f0c040";
+    ctx.font = "12px 'Courier New', monospace";
+    ctx.fillText(`${score} / 10`, 420, 98);
+
+    // Divider
+    ctx.strokeStyle = "#1e1e1e";
+    ctx.beginPath(); ctx.moveTo(20, 112); ctx.lineTo(W - 20, 112); ctx.stroke();
+
+    ctx.fillStyle = "#333";
+    ctx.font = "9px 'Courier New', monospace";
+    ctx.fillText("ANSWER SUMMARY", 20, 128);
+
+    // Divider
+    ctx.beginPath(); ctx.moveTo(20, 136); ctx.lineTo(W - 20, 136); ctx.stroke();
+
+    // Results list
+    results.forEach((correct, i) => {
+      const y = HEADER + i * ROW + 20;
+
+      // Row bg subtle
+      if (i % 2 === 0) {
+        ctx.fillStyle = "rgba(255,255,255,0.015)";
+        ctx.fillRect(0, y - 14, W, ROW);
+      }
+
+      // Index
+      ctx.fillStyle = "#333";
+      ctx.font = "9px 'Courier New', monospace";
+      ctx.fillText(String(i + 1).padStart(2, "0"), 20, y);
+
+      if (correct) {
+        const name = CORRECT_NAMES[i];
+        // First letter slightly brighter
+        ctx.fillStyle = "#00ee77";
+        ctx.font = "bold 13px 'Courier New', monospace";
+        ctx.fillText(name[0], 52, y);
+        ctx.fillStyle = "#00bb55";
+        ctx.font = "13px 'Courier New', monospace";
+        ctx.fillText(name.slice(1), 52 + ctx.measureText(name[0]).width + 1, y);
+      } else {
+        ctx.fillStyle = "#5a1515";
+        ctx.font = "13px 'Courier New', monospace";
+        ctx.fillText("✗", 52, y);
+      }
+    });
+
+    // Bottom divider + hint
+    const footerY = HEADER + CORRECT_NAMES.length * ROW + 16;
+    ctx.strokeStyle = "#1e1e1e";
+    ctx.beginPath(); ctx.moveTo(20, footerY); ctx.lineTo(W - 20, footerY); ctx.stroke();
+    ctx.fillStyle = "#333";
+    ctx.font = "italic 9px 'Courier New', monospace";
+    ctx.fillText("// The answer is hidden in the beginnings", 20, footerY + 18);
+    ctx.fillStyle = "#1e1e1e";
+    ctx.font = "8px 'Courier New', monospace";
+    ctx.fillText("THE STORYTELLER · LND COMMUNITY · LCS #9", 20, footerY + 34);
+
+    // Download
+    try {
+      canvas.toBlob(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `storyteller-ch3-${currentDiscord.replace(/[^a-z0-9]/gi, "_")}.png`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+      }, "image/png");
+    } catch(e) {
+      // Fallback: open in new tab
+      window.open(canvas.toDataURL("image/png"), "_blank");
+    }
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function showInfo(msg, type) {
+    const box = document.getElementById("info-box");
+    box.textContent = msg;
+    box.className = `info-box ${type} show`;
+  }
+  function hideInfo() {
+    document.getElementById("info-box").className = "info-box";
+  }
+  function showExhausted() {
+    document.getElementById("exhausted-banner").style.display = "block";
+    document.getElementById("submit-btn").disabled = true;
+    document.getElementById("discord-input").disabled = true;
+    RIDDLES.forEach((_, i) => {
+      const el = document.getElementById(`ans-${i}`);
+      if (el) el.disabled = true;
+    });
+    document.getElementById("results-panel").style.display = "none";
+    document.getElementById("exhausted-banner").scrollIntoView({ behavior: "smooth" });
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  buildGrid();
+
+  // If discord entered, check on blur
+  document.getElementById("discord-input").addEventListener("blur", function() {
+    const key = this.value.trim().toLowerCase();
+    if (!key) return;
+    const data = loadData();
+    if (data[key]?.count >= MAX_ATTEMPTS) {
+      showExhausted();
+    }
+  });
+
+  // Allow Enter to submit from any answer field
+  document.addEventListener("keydown", function(e) {
+    if (e.key === "Enter" && e.target.id?.startsWith("ans-")) {
+      submitAnswers();
+    }
+  });
+
+  // ── Admin view (hidden) ────────────────────────────────────────────────────
+  // Access via console: storyAdmin()
+  window.storyAdmin = function() {
+    const data = loadData();
+    if (Object.keys(data).length === 0) { console.log("No submissions yet."); return; }
+    console.group("📋 STORYTELLER CH3 — ALL SUBMISSIONS");
+    Object.entries(data).forEach(([key, val]) => {
+      console.group(`👤 ${key} (${val.count} attempt${val.count !== 1 ? "s" : ""})`);
+      val.attempts.forEach((attempt, i) => {
+        const score = attempt.results.filter(Boolean).length;
+        const time = new Date(attempt.timestamp).toLocaleString();
+        console.group(`  Attempt ${i+1} — ${score}/10 — ${time}`);
+        attempt.results.forEach((correct, q) => {
+          const ans = correct ? `✓ ${CORRECT_NAMES[q]}` : `✗ wrong`;
+          console.log(`  Q${q+1}: ${ans}`);
+        });
+        console.groupEnd();
+      });
+      console.groupEnd();
+    });
+    console.groupEnd();
+    return data; // also returns raw object
+  };
+
+  // Also: storyAdminExport() for CSV
+  window.storyAdminExport = function() {
+    const data = loadData();
+    let csv = "Discord,Attempt,Score,Timestamp," + CORRECT_NAMES.join(",") + "\n";
+    Object.entries(data).forEach(([key, val]) => {
+      val.attempts.forEach((att, i) => {
+        const score = att.results.filter(Boolean).length;
+        const row = [
+          att.discord || key,
+          i+1,
+          score,
+          new Date(att.timestamp).toISOString(),
+          ...att.results.map(r => r ? "1" : "0")
+        ].join(",");
+        csv += row + "\n";
+      });
+    });
+    const blob = new Blob([csv], {type:"text/csv"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "storyteller_ch3_submissions.csv"; a.click();
+    console.log("CSV exported.");
+  };
+</script>
+</body>
+</html>
